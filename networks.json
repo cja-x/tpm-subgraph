@@ -1,0 +1,11 @@
+{
+  "mainnet": {
+    "TimeCapsuleFactory": {
+      "address": "0x3e9a668D590B92256bb8D926b147f310791b2B1E",
+      "startBlock": 17616496
+    },
+    "TimeCapsule": {
+      "address": "0x81D051245f78eB62356c270E326eAC02e381dCD2"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: TimeCapsuleFactory
+    network: mainnet
+    source:
+      address: "0x3e9a668D590B92256bb8D926b147f310791b2B1E"
+      abi: TimeCapsuleFactory
+      startBlock: 17616496
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - TimeCapsuleCreated
+        - Token
+      abis:
+        - name: TimeCapsuleFactory
+          file: ./abis/TimeCapsuleFactory.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: TimeCapsuleCreated(address,address)
+          handler: handleTimeCapsuleCreated
+      file: ./src/time-capsule-factory.ts
+templates:
+  - kind: ethereum
+    name: TimeCapsule
+    network: mainnet
+    source:
+      abi: TimeCapsule
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Token
+        - Initialized
+        - LockReleased
+        - Locked
+        - Withdrawal
+      abis:
+        - name: TimeCapsule
+          file: ./abis/TimeCapsule.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: Locked(bytes32,address,uint256,uint256,uint256,uint256,uint256,uint8)
+          handler: handleLocked
+        - event: Withdrawal(address,uint256,uint256)
+          handler: handleWithdrawal
+      file: ./src/time-capsule.ts

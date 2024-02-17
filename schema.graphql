@@ -1,0 +1,87 @@
+type TimeCapsuleFactory @entity {
+  # factory address
+  id: ID!
+  # amount of timecapsules created
+  timecapsuleCount: Int!
+  locksCount: Int!
+  withdrawalsCount: Int!
+}
+
+type Token @entity {
+  # token address
+  id: ID!
+  # token specific volume
+  amountLocked: BigDecimal!
+  amountLockedVolume: BigDecimal!
+  symbol: String!
+  # token name
+  name: String!
+  # token decimals
+  decimals: BigInt!
+  # derived fields
+  tokenDayData: [TokenDailyData!]! @derivedFrom(field: "token")
+}
+
+type TimeCapsuleCreated @entity(immutable: true) {
+  # capsule Address
+  id: ID!
+  owner: Bytes! # address
+  capsuleAddress: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  transaction: Transaction!
+}
+
+type Transaction @entity {
+  # txn hash
+  id: ID!
+  # block txn was included in
+  blockNumber: BigInt!
+  # timestamp txn was confirmed
+  timestamp: BigInt!
+  
+  # the EOA that initiated the txn (owner)
+  origin: Bytes!
+  # capsule address
+  to: Bytes!
+}
+
+type Locked @entity(immutable: true) {
+  id: Bytes!
+  tag: Bytes! # bytes32
+  tokenAddress: Bytes! # address
+  lockIndex: BigInt! # uint256
+  amount: BigDecimal!
+  fee: BigInt! # uint256
+  lockTime: BigInt! # uint256
+  unlockTime: BigInt! # uint256
+  lockType: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  token: Token!
+  transaction: Transaction!
+}
+
+type Withdrawal @entity(immutable: true) {
+  id: Bytes!
+  tokenAddress: Bytes! # address
+  lockIndex: BigInt! # uint256
+  amount: BigDecimal!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TokenDailyData @entity {
+  # token address concatendated with date
+  id: ID!
+  date: Int!
+  token: Token!
+
+  #locked stats
+  amountLocked: BigDecimal!
+  txCount: BigInt!
+}
+
