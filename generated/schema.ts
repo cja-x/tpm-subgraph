@@ -80,6 +80,19 @@ export class TimeCapsuleFactory extends Entity {
     this.set("locksCount", Value.fromI32(value));
   }
 
+  get locksReleasesCount(): i32 {
+    let value = this.get("locksReleasesCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set locksReleasesCount(value: i32) {
+    this.set("locksReleasesCount", Value.fromI32(value));
+  }
+
   get withdrawalsCount(): i32 {
     let value = this.get("withdrawalsCount");
     if (!value || value.kind == ValueKind.NULL) {
@@ -326,6 +339,150 @@ export class TimeCapsuleCreated extends Entity {
 
   set transaction(value: string) {
     this.set("transaction", Value.fromString(value));
+  }
+
+  get locks(): Array<string> {
+    let value = this.get("locks");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toStringArray();
+    }
+  }
+
+  set locks(value: Array<string>) {
+    this.set("locks", Value.fromStringArray(value));
+  }
+}
+
+export class Lock extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Lock entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Lock must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("Lock", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): Lock | null {
+    return changetype<Lock | null>(store.get_in_block("Lock", id));
+  }
+
+  static load(id: string): Lock | null {
+    return changetype<Lock | null>(store.get("Lock", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get lockIndex(): BigInt {
+    let value = this.get("lockIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lockIndex(value: BigInt) {
+    this.set("lockIndex", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+
+  get lockType(): i32 {
+    let value = this.get("lockType");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set lockType(value: i32) {
+    this.set("lockType", Value.fromI32(value));
+  }
+
+  get lockTime(): BigInt {
+    let value = this.get("lockTime");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lockTime(value: BigInt) {
+    this.set("lockTime", Value.fromBigInt(value));
+  }
+
+  get unlockTime(): BigInt {
+    let value = this.get("unlockTime");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set unlockTime(value: BigInt) {
+    this.set("unlockTime", Value.fromBigInt(value));
+  }
+
+  get token(): string {
+    let value = this.get("token");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set token(value: string) {
+    this.set("token", Value.fromString(value));
+  }
+
+  get amount(): BigDecimal {
+    let value = this.get("amount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set amount(value: BigDecimal) {
+    this.set("amount", Value.fromBigDecimal(value));
   }
 }
 
@@ -754,6 +911,19 @@ export class Withdrawal extends Entity {
   set transactionHash(value: Bytes) {
     this.set("transactionHash", Value.fromBytes(value));
   }
+
+  get transaction(): string {
+    let value = this.get("transaction");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set transaction(value: string) {
+    this.set("transaction", Value.fromString(value));
+  }
 }
 
 export class TokenDailyData extends Entity {
@@ -847,6 +1017,115 @@ export class TokenDailyData extends Entity {
 
   set txCount(value: BigInt) {
     this.set("txCount", Value.fromBigInt(value));
+  }
+}
+
+export class LockReleased extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save LockReleased entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type LockReleased must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("LockReleased", id.toBytes().toHexString(), this);
+    }
+  }
+
+  static loadInBlock(id: Bytes): LockReleased | null {
+    return changetype<LockReleased | null>(
+      store.get_in_block("LockReleased", id.toHexString()),
+    );
+  }
+
+  static load(id: Bytes): LockReleased | null {
+    return changetype<LockReleased | null>(
+      store.get("LockReleased", id.toHexString()),
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get tokenAddress(): Bytes {
+    let value = this.get("tokenAddress");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set tokenAddress(value: Bytes) {
+    this.set("tokenAddress", Value.fromBytes(value));
+  }
+
+  get lockIndex(): BigInt {
+    let value = this.get("lockIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lockIndex(value: BigInt) {
+    this.set("lockIndex", Value.fromBigInt(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+
+  get transaction(): string {
+    let value = this.get("transaction");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set transaction(value: string) {
+    this.set("transaction", Value.fromString(value));
   }
 }
 

@@ -2,6 +2,7 @@ import { BigDecimal } from '@graphprotocol/graph-ts'
 import { updateDailyTokenData, convertTokenToDecimal, fetchTokenName, fetchTokenSymbol, fetchTokenDecimals } from './utils/token'
 import { 
   Locked as LockedEvent,
+  LockReleased as LockReleasedEvent,
   Withdrawal as WithdrawalEvent
 } from "../generated/templates/TimeCapsule/TimeCapsule"
 
@@ -10,8 +11,11 @@ import {
   Locked,
   Withdrawal,
   Token,
+  Transaction,
+  TimeCapsuleCreated,
+  Lock,
 } from "../generated/schema"
-import { loadTransaction } from './utils'
+import { removeEntityFromArray, loadTransaction } from './utils'
 
 export function handleLocked(event: LockedEvent): void {
 
@@ -47,12 +51,42 @@ export function handleLocked(event: LockedEvent): void {
   tokenLocked.amountLocked = tokenLocked.amountLocked.plus(_amountLocked)
   tokenLocked.amountLockedVolume = tokenLocked.amountLockedVolume.plus(_amountLocked)
 
+
   updateDailyTokenData(tokenLocked, event)
 
   entity.token = tokenLocked.id
-  entity.transaction = loadTransaction(event).id
+  const _transaction = loadTransaction(event) as Transaction
+  entity.transaction = _transaction.id
+
   entity.save()
   tokenLocked.save()
+
+  const tpmCreated = TimeCapsuleCreated.load(_transaction.to.toHexString())
+  if (tpmCreated !== null) {
+    // create a Lock entity
+    // and append it to the tpmCreated locks array
+    let lockId = _transaction.to.toHexString()
+    .concat('-')
+    .concat(tokenLocked.id)
+    .concat('-')
+    .concat(entity.lockIndex.toString())
+
+    let lock = new Lock(lockId)
+    lock.amount = entity.amount
+    lock.token = tokenLocked.id
+    lock.lockIndex = event.params.lockIndex
+    lock.lockTime = event.params.lockTime
+    lock.unlockTime = event.params.unlockTime
+    lock.lockType = event.params.lockType
+    lock.transactionHash = event.transaction.hash
+
+    let existingLocks = tpmCreated.locks
+    existingLocks.push(lock.id)
+    tpmCreated.locks = existingLocks
+    
+    lock.save()
+    tpmCreated.save()
+  }
 
   let factory = TimeCapsuleFactory.load("main")
   if (factory !== null) {
@@ -62,6 +96,37 @@ export function handleLocked(event: LockedEvent): void {
 
 }
 
+
+export function handleLockReleased(event: LockReleasedEvent): void {
+
+  let tokenLocked = Token.load(event.params.tokenAddress.toHexString())
+  const _transaction = loadTransaction(event)
+  const tpmCreated = TimeCapsuleCreated.load(_transaction.to.toHexString())
+  
+  if (tpmCreated !== null && tokenLocked !== null) {
+    
+    let lockId = _transaction.to.toHexString()
+    .concat('-')
+    .concat(tokenLocked.id)
+    .concat('-')
+    .concat(event.params.lockIndex.toString())
+
+    //find the lock
+    let lock = Lock.load(lockId)
+    if (lock !== null) {
+      const _newlocks = removeEntityFromArray(lock, tpmCreated.locks)
+      tpmCreated.locks = _newlocks
+      tpmCreated.save()
+    }
+  }
+
+  let factory = TimeCapsuleFactory.load("main")
+  if (factory !== null) {
+    factory.locksReleasesCount = factory.locksReleasesCount + 1
+    factory.save()
+  }
+
+}
 
 export function handleWithdrawal(event: WithdrawalEvent): void {
   let entity = new Withdrawal(
@@ -90,6 +155,8 @@ export function handleWithdrawal(event: WithdrawalEvent): void {
 
   //update daily data
   updateDailyTokenData(tokenLocked, event)
+
+  entity.transaction = loadTransaction(event).id
 
   entity.amount = _amountLocked
 

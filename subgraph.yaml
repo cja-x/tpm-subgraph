@@ -30,6 +30,8 @@ dataSources:
       eventHandlers:
         - event: TimeCapsuleCreated(address,address)
           handler: handleTimeCapsuleCreated
+        - event: OwnerChanged(address,address,address)
+          handler: handleOwnerChanged
       file: ./src/time-capsule-factory.ts
 templates:
   - kind: ethereum
@@ -61,4 +63,6 @@ templates:
           handler: handleLocked
         - event: Withdrawal(address,uint256,uint256)
           handler: handleWithdrawal
+        - event: LockReleased(address,uint256)
+          handler: handleLockReleased
       file: ./src/time-capsule.ts

@@ -4,6 +4,7 @@ type TimeCapsuleFactory @entity {
   # amount of timecapsules created
   timecapsuleCount: Int!
   locksCount: Int!
+  locksReleasesCount: Int!
   withdrawalsCount: Int!
 }
 
@@ -22,7 +23,7 @@ type Token @entity {
   tokenDayData: [TokenDailyData!]! @derivedFrom(field: "token")
 }
 
-type TimeCapsuleCreated @entity(immutable: true) {
+type TimeCapsuleCreated @entity {
   # capsule Address
   id: ID!
   owner: Bytes! # address
@@ -31,6 +32,20 @@ type TimeCapsuleCreated @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
   transaction: Transaction!
+
+  locks: [Lock!]!
+}
+
+type Lock @entity {
+  # capsulse address, token address, lockIndex concatendated
+  id: ID!
+  lockIndex: BigInt! # uint256
+  transactionHash: Bytes!
+  lockType: Int! # uint8
+  lockTime: BigInt! # uint256
+  unlockTime: BigInt! # uint256
+  token: Token!
+  amount: BigDecimal!
 }
 
 type Transaction @entity {
@@ -72,6 +87,7 @@ type Withdrawal @entity(immutable: true) {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  transaction: Transaction!
 }
 
 type TokenDailyData @entity {
@@ -85,3 +101,12 @@ type TokenDailyData @entity {
   txCount: BigInt!
 }
 
+
+type LockReleased @entity(immutable: true) {
+  id: Bytes!
+  tokenAddress: Bytes! # address
+  lockIndex: BigInt! # uint256
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  transaction: Transaction!
+}
